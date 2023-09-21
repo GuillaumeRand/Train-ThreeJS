@@ -5,10 +5,10 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 
 THREE.ColorManagement.enabled = false
-// // Start of the code
+// Start of the code
 // THREE.ColorManagement.enabled = false
 
-// // After instantiating the renderer
+// After instantiating the renderer
 // renderer.outputColorSpace = THREE.LinearSRGBColorSpace
 /**
 *  Texture
@@ -36,7 +36,7 @@ const loadingManager = new THREE.LoadingManager()
 // }
 
 const textureLoader = new THREE.TextureLoader(loadingManager)
-const colorTexture = textureLoader.load('/textures/door/color.jpg')
+const colorTexture = textureLoader.load('/textures/minecraft.png')
 const alphaTexture = textureLoader.load('/textures/door/alpha.jpg')
 const heightTexture = textureLoader.load('/textures/door/height.jpg')
 const normalTexture = textureLoader.load('/textures/door/normal.jpg')
@@ -47,7 +47,7 @@ const roughnessTexture = textureLoader.load('/textures/door/roughness.jpg')
 // colorTexture.repeat.x = 2
 // colorTexture.repeat.y = 3
 // colorTexture.wrapS = THREE.MirroredRepeatWrapping
-// // colorTexture.wrapT = THREE.RepeatWrapping
+// colorTexture.wrapT = THREE.RepeatWrapping
 // colorTexture.wrapT = THREE.MirroredRepeatWrapping
 
 // colorTexture.offset.x = 0.5
@@ -65,8 +65,9 @@ const roughnessTexture = textureLoader.load('/textures/door/roughness.jpg')
 // })
 // image.src = '/textures/door/color.jpg'
 
-colorTexture.minFilter = THREE.NearestFilter
-
+colorTexture.generateMipmaps = false
+// colorTexture.minFilter = THREE.NearestFilter
+colorTexture.magFilter = THREE.NearestFilter //for the better results
 /**
  * Base
  */
@@ -81,13 +82,13 @@ const scene = new THREE.Scene()
  */
 const geometry = new THREE.BoxGeometry(1, 1, 1)
 
-// // Or
+// Or
 // const geometry = new THREE.SphereGeometry(1, 32, 32)
 
-// // Or
+// Or
 // const geometry = new THREE.ConeGeometry(1, 1, 32)
 
-// // Or
+// Or
 // const geometry = new THREE.TorusGeometry(1, 0.35, 32, 100)
 const material = new THREE.MeshBasicMaterial({ map: colorTexture })
 const mesh = new THREE.Mesh(geometry, material)
