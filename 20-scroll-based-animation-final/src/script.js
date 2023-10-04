@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 import * as dat from 'lil-gui'
-// import gsap from 'gsap'
-
+import gsap from 'gsap'
 
 THREE.ColorManagement.enabled = false
 
@@ -16,7 +15,8 @@ const parameters = {
 
 gui
     .addColor(parameters, 'materialColor')
-    .onChange( () => {
+    .onChange(() =>
+    {
         material.color.set(parameters.materialColor)
         particlesMaterial.color.set(parameters.materialColor)
     })
@@ -31,30 +31,20 @@ const canvas = document.querySelector('canvas.webgl')
 const scene = new THREE.Scene()
 
 /**
- * Test cube
- */
-// const cube = new THREE.Mesh(
-//     new THREE.BoxGeometry(1, 1, 1),
-//     new THREE.MeshBasicMaterial({ color: '#ff0000' })
-// )
-// scene.add(cube)
-
-/**
  * Objects
  */
-
-//Textures
-const texturesLoad = new THREE.TextureLoader()
-const gradientTexture = texturesLoad.load('textures/gradients/3.jpg')
+// Texture
+const textureLoader = new THREE.TextureLoader()
+const gradientTexture = textureLoader.load('textures/gradients/3.jpg')
 gradientTexture.magFilter = THREE.NearestFilter
 
-//Materials
-const material = new THREE.MeshToonMaterial({ 
+// Material
+const material = new THREE.MeshToonMaterial({
     color: parameters.materialColor,
-    gradientMap: gradientTexture,
- })
+    gradientMap: gradientTexture
+})
 
-// Meshes
+// Objects
 const objectsDistance = 4
 const mesh1 = new THREE.Mesh(
     new THREE.TorusGeometry(1, 0.4, 16, 60),
@@ -69,45 +59,17 @@ const mesh3 = new THREE.Mesh(
     material
 )
 
-mesh1.position.y = - objectsDistance * 0
-mesh2.position.y = - objectsDistance * 1
-mesh3.position.y = - objectsDistance * 2
-
 mesh1.position.x = 2
 mesh2.position.x = - 2
 mesh3.position.x = 2
 
+mesh1.position.y = - objectsDistance * 0
+mesh2.position.y = - objectsDistance * 1
+mesh3.position.y = - objectsDistance * 2
+
 scene.add(mesh1, mesh2, mesh3)
 
 const sectionMeshes = [ mesh1, mesh2, mesh3 ]
-
-/**
- * Particles
- */
-// Geometry 
-const particlesCount = 200
-const positions = new Float32Array(particlesCount * 3)
-
-for (let i = 0; i < particlesCount; i++) {
-
-    positions[i * 3 + 0] = (Math.random() - 0.5) * 10 // x
-    positions[i * 3 + 1] = objectsDistance * 0.5 - Math.random() * objectsDistance * sectionMeshes.length //y
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 10
-}
-
-const particlesGeometry = new THREE.BufferGeometry()
-particlesGeometry.setAttribute( 'position', new THREE.BufferAttribute(positions, 3))
-
-// Material
-const particlesMaterial = new THREE.PointsMaterial({
-    color: parameters.materialColor,
-    sizeAttenuation: true,
-    size: 0.03
-})
-
-// Points
-const particles = new THREE.Points(particlesGeometry, particlesMaterial)
-scene.add(particles)
 
 /**
  * Lights
@@ -115,6 +77,34 @@ scene.add(particles)
 const directionalLight = new THREE.DirectionalLight('#ffffff', 1)
 directionalLight.position.set(1, 1, 0)
 scene.add(directionalLight)
+
+/**
+ * Particles
+ */
+// Geometry
+const particlesCount = 200
+const positions = new Float32Array(particlesCount * 3)
+
+for(let i = 0; i < particlesCount; i++)
+{
+    positions[i * 3 + 0] = (Math.random() - 0.5) * 10
+    positions[i * 3 + 1] = objectsDistance * 0.5 - Math.random() * objectsDistance * sectionMeshes.length
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 10
+}
+
+const particlesGeometry = new THREE.BufferGeometry()
+particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+
+// Material
+const particlesMaterial = new THREE.PointsMaterial({
+    color: parameters.materialColor,
+    sizeAttenuation: textureLoader,
+    size: 0.03
+})
+
+// Points
+const particles = new THREE.Points(particlesGeometry, particlesMaterial)
+scene.add(particles)
 
 /**
  * Sizes
@@ -142,7 +132,7 @@ window.addEventListener('resize', () =>
 /**
  * Camera
  */
-//Group
+// Group
 const cameraGroup = new THREE.Group()
 scene.add(cameraGroup)
 
@@ -156,20 +146,20 @@ cameraGroup.add(camera)
  */
 const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
-    alpha : true
+    alpha: true
 })
 renderer.outputColorSpace = THREE.LinearSRGBColorSpace
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
 /**
- * Scrolls
+ * Scroll
  */
-let scrollY = window.scrollY //the current scroll value
+let scrollY = window.scrollY
 let currentSection = 0
 
-window.addEventListener('scroll', () => {
-    // Update scroll value
+window.addEventListener('scroll', () =>
+{
     scrollY = window.scrollY
     const newSection = Math.round(scrollY / sizes.height)
 
@@ -188,7 +178,6 @@ window.addEventListener('scroll', () => {
             }
         )
     }
-
 })
 
 /**
@@ -198,7 +187,7 @@ const cursor = {}
 cursor.x = 0
 cursor.y = 0
 
-window.addEventListener('mousemove', (event) => //use normalize value
+window.addEventListener('mousemove', (event) =>
 {
     cursor.x = event.clientX / sizes.width - 0.5
     cursor.y = event.clientY / sizes.height - 0.5
@@ -237,4 +226,5 @@ const tick = () =>
     // Call tick again on the next frame
     window.requestAnimationFrame(tick)
 }
+
 tick()
