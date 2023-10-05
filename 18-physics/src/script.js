@@ -1,13 +1,73 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
+import CANNON from 'cannon'
 
 THREE.ColorManagement.enabled = false
+
+/**
+ * Physics
+ */
+// World
+const world = new CANNON.World()
+world.gravity.set(0, - 9.82, 0)
+
+// Materials
+const defaultMaterial = new CANNON.Material('default')
+
+const defaultContactMaterial = new CANNON.ContactMaterial(
+    defaultMaterial,
+    defaultMaterial,
+    {
+        friction: 0.1,
+        restitution: 0.7
+    }
+)
+world.addContactMaterial(defaultContactMaterial)
+
+// // Sphere
+// const sphereShape = new CANNON.Sphere(0.5) //set radius // Shape
+// const sphereBody = new CANNON.Body({  // Body
+//     mass: 1, 
+//     shape: sphereShape,
+//     position: new CANNON.Vec3(0, 3, 0),
+//     material: defaultMaterial
+//  })
+//  sphereBody.applyLocalForce(new CANNON.Vec3(150, 0, 100), new CANNON.Vec3(0, 0, 0))
+//  world.addBody(sphereBody)
+
+// Floor
+const floorShape = new CANNON.Plane()
+const floorBody = new CANNON.Body()
+floorBody.material = defaultMaterial
+floorBody.mass = 0 // static initialization, setting by default
+floorBody.addShape(floorShape)
+
+floorBody.quaternion.setFromAxisAngle(
+    new CANNON.Vec3(-1, 0, 0), 
+    Math.PI * 0.5,
+)
+
+world.addBody(floorBody)
 
 /**
  * Debug
  */
 const gui = new dat.GUI()
+
+const debugObject = {}
+
+debugObject.createSphere = () => 
+{
+    createSphere(Math.random() * 0.5,
+        {
+            x: (Math.random() - 0.5) * 3, 
+            y: 3, 
+            z: (Math.random() - 0.5) * 3
+        })
+}
+gui.add(debugObject, 'createSphere')
+
 
 /**
  * Base
@@ -33,21 +93,21 @@ const environmentMapTexture = cubeTextureLoader.load([
     '/textures/environmentMaps/0/nz.png'
 ])
 
-/**
- * Test sphere
- */
-const sphere = new THREE.Mesh(
-    new THREE.SphereGeometry(0.5, 32, 32),
-    new THREE.MeshStandardMaterial({
-        metalness: 0.3,
-        roughness: 0.4,
-        envMap: environmentMapTexture,
-        envMapIntensity: 0.5
-    })
-)
-sphere.castShadow = true
-sphere.position.y = 0.5
-scene.add(sphere)
+// /**
+//  * Test sphere
+//  */
+// const sphere = new THREE.Mesh(
+//     new THREE.SphereGeometry(0.5, 32, 32),
+//     new THREE.MeshStandardMaterial({
+//         metalness: 0.3,
+//         roughness: 0.4,
+//         envMap: environmentMapTexture,
+//         envMapIntensity: 0.5
+//     })
+// )
+// sphere.castShadow = true
+// sphere.position.y = 0.5
+// scene.add(sphere)
 
 /**
  * Floor
@@ -131,13 +191,70 @@ renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
 /**
+ * Utils
+ */
+const objectsToUpdate = []
+
+const createSphere = (radius, position) =>
+{
+    // Three.js mesh
+    const mesh = new THREE.Mesh(
+        new THREE.SphereGeometry(radius, 20, 20),
+        new THREE.MeshStandardMaterial({
+            metalness: 0.3,
+            roughness: 0.4,
+            envMap: environmentMapTexture,
+            envMapIntensity: 0.5
+        })
+    )
+    mesh.castShadow = true
+    mesh.position.copy(position)
+    scene.add(mesh)
+    const shape = new CANNON.Sphere(radius)
+
+    const body = new CANNON.Body({
+        mass: 1,
+        position: new CANNON.Vec3(0, 3, 0),
+        shape: shape,
+        material: defaultMaterial
+    })
+    body.position.copy(position)
+    world.addBody(body)
+
+    // Save the body for later use
+    objectsToUpdate.push({
+        mesh: mesh,
+        body: body
+    })
+}
+createSphere(0.5, { x: 0, y: 3, z: 0 })
+
+/*
  * Animate
  */
 const clock = new THREE.Clock()
+let oldElapsedTime = 0
 
 const tick = () =>
 {
     const elapsedTime = clock.getElapsedTime()
+    const deltaTime = elapsedTime - oldElapsedTime
+    oldElapsedTime = elapsedTime
+
+    for (const object of objectsToUpdate){
+        object.mesh.position.copy(object.body.position)
+    }
+
+    // Update physics world
+    // sphereBody.applyForce(new CANNON.Vec3(-0.5, 0, 0), sphereBody.position)
+
+    world.step(1/60, deltaTime, 3) // fixed timestamp - times passed since last step - iteration catch up with the potentiel delay // 
+
+    // Update the two worlds
+    // sphere.position.x = sphereBody.position.x
+    // sphere.position.y = sphereBody.position.y
+    // sphere.position.z = sphereBody.position.z
+    // sphere.position.copy(sphereBody.position)
 
     // Update controls
     controls.update()
