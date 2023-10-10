@@ -1,6 +1,8 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import * as dat from 'lil-gui'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 
 THREE.ColorManagement.enabled = false
 
@@ -12,6 +14,35 @@ const gui = new dat.GUI()
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
+
+/**
+ * Models
+ */
+const dracoLoader = new DRACOLoader() // load compressed geometrie and more faster loading
+
+dracoLoader.setDecoderPath('/draco/')
+
+const gltfLoader = new GLTFLoader()
+
+gltfLoader.setDRACOLoader(dracoLoader)
+
+
+let mixer = null
+
+gltfLoader.load(
+    '/models/Fox/glTF/Fox.gltf',
+    (gltf) =>
+    {
+        gltf.scene.scale.set(0.03, 0.03, 0.03)
+        scene.add(gltf.scene)
+
+        mixer = new THREE.AnimationMixer(gltf.scene)
+        const action = mixer.clipAction(gltf.animations[2])
+        action.play()
+    }
+)
+
+
 
 // Scene
 const scene = new THREE.Scene()
@@ -107,6 +138,12 @@ const tick = () =>
     const elapsedTime = clock.getElapsedTime()
     const deltaTime = elapsedTime - previousTime
     previousTime = elapsedTime
+
+    // Update mixer
+    if(mixer !== null){
+
+        mixer.update(deltaTime)
+    }
 
     // Update controls
     controls.update()
