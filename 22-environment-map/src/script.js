@@ -15,12 +15,33 @@ const cubeTextureLoader = new THREE.CubeTextureLoader()
 
 // Debug
 const gui = new dat.GUI()
+const global = {}
 
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
 
 // Scene
 const scene = new THREE.Scene()
+
+/**
+ * Update Materials
+ */
+const updateMaterials = () => {
+    scene.traverse((child) => {
+        if(child instanceof THREE.Mesh && child.material.isMeshStandardMaterial)
+        {
+            child.material.envMapIntensity = 3
+            // gui.add(child.material, 'envMapIntensity').miin(0).max(10).step(0.001)
+            
+        }
+    })
+}
+/**
+ * Environnement map
+ */
+// Global itnesity 
+global.envMapIntensity = 1
+gui.add(global, 'envMapIntensity').min(0).max(10).step(0.001)
 
 /**
  * 
@@ -37,14 +58,16 @@ const environmentMap = cubeTextureLoader.load([
 ])
 
 scene.background = environmentMap
+scene.environment = environmentMap
 
 /**
  * Torus Knot
  */
 const torusKnot = new THREE.Mesh(
     new THREE.TorusKnotGeometry(1, 0.4, 100, 16),
-    new THREE.MeshBasicMaterial()
+    new THREE.MeshStandardMaterial({roughness: 0.3, metalness: 1, color: 0xaaaaaa}),
 )
+torusKnot.material.envMap = environmentMap
 torusKnot.position.y = 4
 scene.add(torusKnot)
 
@@ -57,6 +80,8 @@ gltfLoader.load(
     {
         gltf.scene.scale.set(10,10,10)
         scene.add(gltf.scene)
+
+        updateMaterials()
     }
 )
 
