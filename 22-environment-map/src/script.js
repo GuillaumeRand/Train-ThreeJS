@@ -1,10 +1,18 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as dat from 'lil-gui'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 /**
  * Base
  */
+
+/**
+ * Loader
+ */
+const gltfLoader = new GLTFLoader()
+const cubeTextureLoader = new THREE.CubeTextureLoader()
+
 // Debug
 const gui = new dat.GUI()
 
@@ -15,6 +23,22 @@ const canvas = document.querySelector('canvas.webgl')
 const scene = new THREE.Scene()
 
 /**
+ * 
+ * Load Environnements
+ */
+// LDR cube texture
+const environmentMap = cubeTextureLoader.load([
+    '/environmentMaps/0/px.png',
+    '/environmentMaps/0/nx.png',
+    '/environmentMaps/0/py.png',
+    '/environmentMaps/0/ny.png',
+    '/environmentMaps/0/pz.png',
+    '/environmentMaps/0/nz.png'
+])
+
+scene.background = environmentMap
+
+/**
  * Torus Knot
  */
 const torusKnot = new THREE.Mesh(
@@ -23,6 +47,18 @@ const torusKnot = new THREE.Mesh(
 )
 torusKnot.position.y = 4
 scene.add(torusKnot)
+
+/**
+ * Models
+ */
+gltfLoader.load(
+    '/models/FlightHelmet/glTF/FlightHelmet.gltf',
+    (gltf) => 
+    {
+        gltf.scene.scale.set(10,10,10)
+        scene.add(gltf.scene)
+    }
+)
 
 /**
  * Sizes
