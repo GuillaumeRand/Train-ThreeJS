@@ -9,6 +9,7 @@ import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
  */
 const gltfLoader = new GLTFLoader()
 const rgbeLoader = new RGBELoader()
+const textureLoader = new THREE.TextureLoader()
 
 /**
  * Base
@@ -33,6 +34,9 @@ const updateAllMaterials = () =>
         if(child.isMesh && child.material.isMeshStandardMaterial)
         {
             child.material.envMapIntensity = global.envMapIntensity
+
+            child.castShadow = true
+            child.receiveShadow = true
         }
     })
 }
@@ -57,6 +61,66 @@ rgbeLoader.load('/environmentMaps/0/2k.hdr', (environmentMap) =>
     scene.background = environmentMap
     scene.environment = environmentMap
 })
+
+/**
+ * Directional light
+ */
+const directionalLight = new THREE.DirectionalLight('#ffffff', 2)
+directionalLight.position.set(- 4, 6.5, 2.5)
+scene.add(directionalLight)
+
+gui.add(directionalLight, 'intensity').min(0).max(10).step(0.001).name('lightIntensity')
+gui.add(directionalLight.position, 'x').min(- 10).max(10).step(0.001).name('lightX')
+gui.add(directionalLight.position, 'y').min(- 10).max(10).step(0.001).name('lightY')
+gui.add(directionalLight.position, 'z').min(- 10).max(10).step(0.001).name('lightZ')
+
+// Shadows
+directionalLight.castShadow = true
+directionalLight.shadow.camera.far = 15
+directionalLight.shadow.normalBias = 0.027
+directionalLight.shadow.bias = - 0.004
+directionalLight.shadow.mapSize.set(512, 512)
+
+gui.add(directionalLight, 'castShadow')
+gui.add(directionalLight.shadow, 'normalBias').min(- 0.05).max(0.05).step(0.001)
+gui.add(directionalLight.shadow, 'bias').min(- 0.05).max(0.05).step(0.001)
+
+// Target
+directionalLight.target.position.set(0, 4, 0)
+directionalLight.target.updateWorldMatrix()
+
+// // Helper
+// const directionalLightCameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera)
+// scene.add(directionalLightCameraHelper)
+
+/**
+ * Models
+ */
+// Helmet
+gltfLoader.load(
+    '/models/FlightHelmet/glTF/FlightHelmet.gltf',
+    (gltf) =>
+    {
+        gltf.scene.scale.set(10, 10, 10)
+        scene.add(gltf.scene)
+
+        updateAllMaterials()
+    }
+)
+
+// // Hamburger
+// gltfLoader.load(
+//     '/models/hamburger.glb',
+//     (gltf) =>
+//     {
+//         gltf.scene.scale.set(0.4, 0.4, 0.4)
+//         gltf.scene.position.set(0, 2.5, 0)
+//         scene.add(gltf.scene)
+
+//         updateAllMaterials()
+//     }
+// )
+
 
 /**
  * Models
