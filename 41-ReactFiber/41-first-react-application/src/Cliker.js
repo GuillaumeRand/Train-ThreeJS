@@ -1,15 +1,23 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 export default function Cliker()
 {
-  const countState = useState(0)
+  const [count, setCount] = useState(0)
 
-  const count = countState[0]
-  const setCount = countState[1]
+  useEffect(() =>
+  {
+    const savedCount = parseInt(localStorage.getItem('count'))
+    console.log(savedCount)
+  }, [])
+
+  useEffect(() => 
+  {
+    localStorage.setItem('count', count) //Javascipt API
+  }, [count])
 
   const buttonClick = () => 
   {
-    setCount(count + 1)
+    setCount((value) => value + 1)
     console.log('Button has been clicked')
   }
 
