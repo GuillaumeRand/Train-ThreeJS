@@ -2,12 +2,11 @@ import { useEffect, useState } from "react"
 
 export default function Cliker()
 {
-  const [count, setCount] = useState(0)
+  
+  const [count, setCount] = useState(parseInt(localStorage.getItem('count') ?? 0))
 
   useEffect(() =>
   {
-    const savedCount = parseInt(localStorage.getItem('count'))
-    console.log(savedCount)
   }, [])
 
   useEffect(() => 

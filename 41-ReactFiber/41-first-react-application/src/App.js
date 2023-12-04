@@ -3,5 +3,15 @@ import Cliker from './Cliker.js'
 
 export default function App()
 {
-  return <Cliker/>
-}
+  const [hasClicker, setHasClicker] = useState(true)
+
+  const toggleCickerClick = () => 
+  {
+    setHasClicker(!hasClicker)
+  }
+
+  return <>
+    <button onClick={ toggleCickerClick }>Toggle clicker</button>
+  <Cliker/> 
+  </>
+} 
